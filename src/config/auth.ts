@@ -1,11 +1,9 @@
-// ▼▼ 認証モードにあわせていずれかを有効にする
-
-const AUTH_MODE = "session" as "session" | "jwt";
-// const AUTH_MODE = "jwt" as "session" | "jwt";
-
-// 認証モードの設定 (ここは変更しない)
+// 認証モード: セッションベースに固定
 export const AUTH = {
-  mode: AUTH_MODE,
-  isSession: AUTH_MODE === "session",
-  isJWT: AUTH_MODE === "jwt",
+  mode: "session",
+  isSession: true,
 } as const;
+
+export const SESSION_TIMEOUT_SECONDS = 60 * 60 * 3;
+export const LOGIN_LOCKOUT_MAX_ATTEMPTS = 3;
+export const LOGIN_LOCKOUT_DURATION_SECONDS = 60 * 60 * 3;

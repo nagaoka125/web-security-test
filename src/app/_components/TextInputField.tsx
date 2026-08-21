@@ -1,8 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { ReactNode, ComponentPropsWithRef } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 const input = tv({
   base: "w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-700",
@@ -32,29 +34,89 @@ const input = tv({
 });
 
 interface Props
-  extends Omit<ComponentPropsWithRef<"input">, "className">,
+  extends
+    Omit<ComponentPropsWithRef<"input">, "className">,
     VariantProps<typeof input> {
-  ref: React.Ref<HTMLInputElement>;
   children?: ReactNode;
   className?: string;
   isBusy?: boolean;
   readOnly?: boolean;
   error?: boolean;
   border?: "normal" | "hoverOnly";
+  showPasswordToggle?: boolean;
 }
 
-export const TextInputField = (props: Props) => {
-  const { ref, disabled, className, readOnly, error, isBusy, border, ...rest } =
-    props;
+export const TextInputField = React.forwardRef<HTMLInputElement, Props>(
+  (props, ref) => {
+    const {
+      disabled,
+      className,
+      readOnly,
+      error,
+      isBusy,
+      border,
+      type,
+      showPasswordToggle,
+      ...rest
+    } = props;
 
-  return (
-    <input
-      ref={ref}
-      className={input({ border, disabled, readOnly, error, class: className })}
-      disabled={disabled || isBusy}
-      readOnly={readOnly}
-      type="text"
-      {...rest}
-    />
-  );
-};
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const inputType = showPasswordToggle
+      ? isPasswordVisible
+        ? "text"
+        : "password"
+      : (type ?? "text");
+
+    if (showPasswordToggle && type === "password") {
+      return (
+        <div className="relative">
+          <input
+            ref={ref}
+            className={input({
+              border,
+              disabled,
+              readOnly,
+              error,
+              class: className,
+            })}
+            disabled={disabled || isBusy}
+            readOnly={readOnly}
+            type={inputType}
+            {...rest}
+          />
+          <button
+            type="button"
+            aria-label={
+              isPasswordVisible ? "パスワードを非表示" : "パスワードを表示"
+            }
+            onClick={() => setIsPasswordVisible((prev) => !prev)}
+            className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+            tabIndex={-1}
+            disabled={disabled || isBusy || readOnly}
+          >
+            <FontAwesomeIcon icon={isPasswordVisible ? faEyeSlash : faEye} />
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <input
+        ref={ref}
+        className={input({
+          border,
+          disabled,
+          readOnly,
+          error,
+          class: className,
+        })}
+        disabled={disabled || isBusy}
+        readOnly={readOnly}
+        type={type ?? "text"}
+        {...rest}
+      />
+    );
+  },
+);
+
+TextInputField.displayName = "TextInputField";

@@ -4,7 +4,6 @@ import React, { useMemo, createContext } from "react";
 import type { UserProfile } from "@/app/_types/UserProfile";
 import useSWR, { mutate } from "swr";
 import type { ApiResponse } from "../_types/ApiResponse";
-import { jwtFetcher } from "./jwtFetcher";
 import { sessionFetcher } from "./sessionFetcher";
 import { AUTH } from "@/config/auth";
 
@@ -24,7 +23,7 @@ interface Props {
 const AuthProvider: React.FC<Props> = ({ children }) => {
   const { data: session } = useSWR<ApiResponse<UserProfile | null>>(
     "/api/auth",
-    AUTH.isSession ? sessionFetcher : jwtFetcher,
+    sessionFetcher,
   );
 
   const userProfile = useMemo<UserProfile | null>(() => {
@@ -33,18 +32,11 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
   }, [session]);
 
   const logout = async () => {
-    if (AUTH.isSession) {
-      // ■■ セッションベース認証 ■■
-      // → バックエンドにログアウトリクエストを送信してセッションを破棄
-      await fetch("/api/logout", {
-        method: "DELETE",
-        credentials: "same-origin",
-      });
-    } else {
-      // ■■ トークンベース認証 ■■
-      // ローカルストレージから jwt を削除
-      localStorage.removeItem("jwt");
-    }
+    // セッションベース認証: バックエンドにログアウトリクエストを送信してセッションを破棄
+    await fetch("/api/logout", {
+      method: "DELETE",
+      credentials: "same-origin",
+    });
     // SWR キャッシュを無効化
     mutate(() => true, undefined, { revalidate: false });
     return true;

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/libs/prisma";
+import { SESSION_TIMEOUT_SECONDS } from "@/config/auth";
 
 /**
  * Cookie の sessionId から userId を取得（期限延長あり）
@@ -30,8 +31,7 @@ export const verifySession = async (): Promise<string | null> => {
   }
 
   // セッションの有効期限を延長
-  const tokenMaxAgeSeconds = 60 * 60 * 3; // 3時間
-  const newExpiry = new Date(now.getTime() + tokenMaxAgeSeconds * 1000);
+  const newExpiry = new Date(now.getTime() + SESSION_TIMEOUT_SECONDS * 1000);
   await prisma.session.update({
     where: { id: sessionId },
     data: { expiresAt: newExpiry },
@@ -41,7 +41,7 @@ export const verifySession = async (): Promise<string | null> => {
     path: "/",
     httpOnly: true,
     sameSite: "lax",
-    maxAge: tokenMaxAgeSeconds,
+    maxAge: SESSION_TIMEOUT_SECONDS,
     secure: false,
   });
 

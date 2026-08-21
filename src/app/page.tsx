@@ -2,34 +2,30 @@ import NextLink from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCode, faIdCard } from "@fortawesome/free-solid-svg-icons";
 import { prisma } from "@/libs/prisma";
+import { info } from "console";
 
 export const dynamic = "force-dynamic";
 
 const links = [
   {
-    href: "/news",
-    label: "ニュース",
-    info: "Cookie超入門、SWR超入門、DB Seeding入門、XSS脆弱性（反射型）",
-  },
-  {
-    href: "/shop",
-    label: "ショップ",
-    info: "Cookie入門、SWR入門、zod入門",
-  },
-  {
     href: "/login",
     label: "ログイン",
-    info: "セッションベース認証入門/トークンベース認証入門",
+    info: "ログイン画面",
   },
   {
     href: "/signup",
     label: "サインアップ",
-    info: "ServerActions (Custom Invocation) 入門",
+    info: "新規ユーザー登録画面",
   },
   {
     href: "/member/about",
     label: "公開プロフィールの確認・編集",
     info: "ログインが必要なコンテンツ",
+  },
+  {
+    href: "/member/password",
+    label: "パスワード変更",
+    info: "ログイン中のユーザーが自分のパスワードを更新する",
   },
 ];
 
@@ -72,7 +68,6 @@ const Page = async () => {
               >
                 {name} のプロフィール
               </NextLink>
-              <div className="text-xs text-rose-400">※ XSS脆弱性（蓄積型）</div>
             </div>
           ))
         )}

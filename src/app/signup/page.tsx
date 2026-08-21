@@ -43,8 +43,10 @@ const Page: React.FC = () => {
   };
 
   // ルートエラーのクリア用 onChange ハンドラ合成
-  const { onChange: onEmailChange, ...emailRegister } = formMethods.register(c_Email);
-  const { onChange: onPasswordChange, ...passwordRegister } = formMethods.register(c_Password);
+  const { onChange: onEmailChange, ...emailRegister } =
+    formMethods.register(c_Email);
+  const { onChange: onPasswordChange, ...passwordRegister } =
+    formMethods.register(c_Password);
   const clearRootOnChange =
     (originalOnChange: React.ChangeEventHandler<HTMLInputElement>) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,6 +136,7 @@ const Page: React.FC = () => {
             id={c_Password}
             placeholder="*****"
             type="password"
+            showPasswordToggle
             disabled={isPending || isSignUpCompleted}
             error={!!fieldErrors.password}
             autoComplete="off"
@@ -148,9 +151,7 @@ const Page: React.FC = () => {
           className="tracking-widest"
           isBusy={isPending}
           disabled={
-            !formMethods.formState.isValid ||
-            isPending ||
-            isSignUpCompleted
+            !formMethods.formState.isValid || isPending || isSignUpCompleted
           }
         >
           登録

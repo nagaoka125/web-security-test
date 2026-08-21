@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { twMerge } from "tailwind-merge";
 import NextLink from "next/link";
 import { ApiResponse } from "../_types/ApiResponse";
-import { decodeJwt } from "jose";
+
 import { mutate } from "swr";
 import { useRouter } from "next/navigation";
 import { AUTH } from "@/config/auth";
@@ -60,8 +60,10 @@ const Page: React.FC = () => {
   }, [isLoginCompleted, router]);
 
   // ルートエラーのクリア用 onChange ハンドラ合成
-  const { onChange: onEmailChange, ...emailRegister } = formMethods.register(c_Email);
-  const { onChange: onPasswordChange, ...passwordRegister } = formMethods.register(c_Password);
+  const { onChange: onEmailChange, ...emailRegister } =
+    formMethods.register(c_Email);
+  const { onChange: onPasswordChange, ...passwordRegister } =
+    formMethods.register(c_Password);
   const clearRootOnChange =
     (originalOnChange: React.ChangeEventHandler<HTMLInputElement>) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,31 +89,29 @@ const Page: React.FC = () => {
       });
       setIsPending(false);
 
-      if (!res.ok) return;
-
-      const body = (await res.json()) as ApiResponse<unknown>;
-      if (!body.success) {
-        setRootError(body.message);
+      const body = (await res
+        .json()
+        .catch(() => null)) as ApiResponse<unknown> | null;
+      if (!res.ok || !body?.success) {
+        setRootError(body?.message ?? "ログインに失敗しました。");
         return;
       }
 
-      if (AUTH.isSession) {
-        // ■■ セッションベース認証の処理 ■■
-        setUserProfile(userProfileSchema.parse(body.payload));
-      } else {
-        // ■■ トークンベース認証の処理 ■■
-        const jwt = body.payload as string;
-        localStorage.setItem("jwt", jwt); // JWT をローカルストレージに保存
-        setUserProfile(userProfileSchema.parse(decodeJwt(jwt)));
-      }
-      mutate("/api/auth", body);
+      // セッションベース認証に統一
+      const payload = body.payload as UserProfile;
+      setUserProfile(payload);
+      mutate("/api/auth", body, { revalidate: false });
       setIsLoginCompleted(true);
+      router.replace("/");
+      router.refresh();
     } catch (e) {
       const errorMsg =
         e instanceof Error ? e.message : "予期せぬエラーが発生しました。";
       setRootError(errorMsg);
     }
   };
+
+  const isSubmitDisabled = isPending || isLoginCompleted;
 
   return (
     <main>
@@ -154,6 +154,7 @@ const Page: React.FC = () => {
             id={c_Password}
             placeholder="*****"
             type="password"
+            showPasswordToggle
             disabled={isPending || isLoginCompleted}
             error={!!fieldErrors.password}
             autoComplete="off"
@@ -163,13 +164,12 @@ const Page: React.FC = () => {
         </div>
 
         <Button
+          type="submit"
           variant="indigo"
           width="stretch"
           className={twMerge("tracking-widest")}
           isBusy={isPending}
-          disabled={
-            !formMethods.formState.isValid || isPending || isLoginCompleted
-          }
+          disabled={isSubmitDisabled}
         >
           ログイン
         </Button>

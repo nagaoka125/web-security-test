@@ -4,8 +4,7 @@ import type { About } from "@/app/_types/About";
 import type { ApiResponse } from "@/app/_types/ApiResponse";
 import { NextResponse, NextRequest } from "next/server";
 import { verifySession } from "@/app/api/_helper/verifySession";
-import { verifyJwt } from "@/app/api/_helper/verifyJwt";
-import { AUTH } from "@/config/auth";
+import { sanitizeHtml } from "@/app/_utils/sanitizeHtml";
 
 // キャッシュを無効化して常に最新情報を取得
 export const dynamic = "force-dynamic";
@@ -13,11 +12,7 @@ export const fetchCache = "force-no-store";
 export const revalidate = 0;
 
 const getUserId = async (req: NextRequest): Promise<string | null> => {
-  if (AUTH.isSession) {
-    return await verifySession();
-  } else {
-    return await verifyJwt(req);
-  }
+  return await verifySession();
 };
 
 export const GET = async (req: NextRequest) => {
@@ -97,6 +92,7 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json(res);
     }
     const about = result.data;
+    const safeAboutContent = sanitizeHtml(about.aboutContent);
 
     // slug の重複チェック
     if (about.aboutSlug) {
@@ -122,7 +118,7 @@ export const POST = async (req: NextRequest) => {
       where: { id: userId },
       data: {
         aboutSlug: about.aboutSlug,
-        aboutContent: about.aboutContent,
+        aboutContent: safeAboutContent,
       },
       select: {
         name: true,
